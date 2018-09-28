@@ -7,5 +7,9 @@ namespace EnterprisePatterns.Api.Customers.Domain.Repository
         IReadOnlyList<Customer> GetList();
 
         Customer GetByEmail(Email email);
+
+        Customer GetById (long id);
+
+        void Add (Customer customer);
     }
 }

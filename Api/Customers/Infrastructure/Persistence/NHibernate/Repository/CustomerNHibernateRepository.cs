@@ -25,5 +25,12 @@ namespace EnterprisePatterns.Api.Customers.Infrastructure.Persistence.NHibernate
                 .Query<Customer>()
                 .SingleOrDefault(x => x.Email == email.Value);
         }
+
+        public Customer GetById(long id)
+        {
+            return _unitOfWork
+                .Query<Customer>()
+                .SingleOrDefault(x => x.Email == email.Value);
+        }
     }
 }
