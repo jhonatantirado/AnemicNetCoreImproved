@@ -68,6 +68,8 @@ namespace EnterprisePatterns.Api.Common.Infrastructure.Persistence.NHibernate
 
         public IQueryable<T> Query<T>()
         {
+            _session = _sessionFactory.OpenSession();
+            //return GetSession().Query<T>();
             return _session.Query<T>();
         }
 
