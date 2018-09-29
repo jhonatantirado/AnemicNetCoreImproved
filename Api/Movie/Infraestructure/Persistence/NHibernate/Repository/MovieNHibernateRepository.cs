@@ -17,5 +17,12 @@ namespace EnterprisePatterns.Api.Movies.Infrastructure.Persistence.NHibernate.Re
         {
             return _unitOfWork.Query<Movie>().ToList();
         }
+
+        public Movie GetById(long id)
+        {
+            return  new TwoDaysMovie {};
+        }
+
+        
     }
 }

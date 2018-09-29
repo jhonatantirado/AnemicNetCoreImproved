@@ -30,7 +30,12 @@ namespace EnterprisePatterns.Api.Customers.Infrastructure.Persistence.NHibernate
         {
             return _unitOfWork
                 .Query<Customer>()
-                .SingleOrDefault(x => x.Email == email.Value);
+                .SingleOrDefault(x => x.Email == x.Email );
+        }
+
+        public void Add (Customer customer)
+        {
+            
         }
     }
 }
