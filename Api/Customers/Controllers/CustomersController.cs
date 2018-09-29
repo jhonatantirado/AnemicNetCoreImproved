@@ -16,12 +16,12 @@ namespace EnterprisePatterns.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController : ControllerBase
+    public class CustomersController : BaseController
     {
         private readonly IMovieRepository _movieRepository;
         private readonly ICustomerRepository _customerRepository;
 
-        public CustomersController(IMovieRepository movieRepository, ICustomerRepository customerRepository)
+        public CustomersController(IUnitOfWork unitOfWork, IMovieRepository movieRepository, ICustomerRepository customerRepository): base(unitOfWork)
         {
             _customerRepository = customerRepository;
             _movieRepository = movieRepository;
@@ -85,10 +85,10 @@ namespace EnterprisePatterns.Api.Controllers
 
             Result result = Result.Combine(customerNameOrError, emailOrError);
             if (result.IsFailure)
-                return BadRequest(result.Error);
+                return Error(result.Error);
 
             if (_customerRepository.GetByEmail(emailOrError.Value) != null)
-                return BadRequest("Email is already in use: " + item.Email);
+                return Error("Email is already in use: " + item.Email);
 
             var customer = new Customer(customerNameOrError.Value, emailOrError.Value);
             _customerRepository.Create(customer);
@@ -102,11 +102,11 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Result<CustomerName> customerNameOrError = CustomerName.Create(item.Name);
             if (customerNameOrError.IsFailure)
-                return BadRequest(customerNameOrError.Error);
+                return Error(customerNameOrError.Error);
 
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return BadRequest("Invalid customer id: " + id);
+                return Error("Invalid customer id: " + id);
 
             customer.Name = customerNameOrError.Value;
 
@@ -119,14 +119,14 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Movie movie = _movieRepository.Read(movieId);
             if (movie == null)
-                return BadRequest("Invalid movie id: " + movieId);
+                return Error("Invalid movie id: " + movieId);
 
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return BadRequest("Invalid customer id: " + id);
+                return Error("Invalid customer id: " + id);
 
             if (customer.HasPurchasedMovie(movie))
-                return BadRequest("The movie is already purchased: " + movie.Name);
+                return Error("The movie is already purchased: " + movie.Name);
 
             customer.PurchaseMovie(movie);
 
@@ -139,11 +139,11 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return BadRequest("Invalid customer id: " + id);
+                return Error("Invalid customer id: " + id);
 
             Result promotionCheck = customer.CanPromote();
             if (promotionCheck.IsFailure)
-                return BadRequest(promotionCheck.Error);
+                return Error(promotionCheck.Error);
 
             customer.Promote();
 

@@ -13,6 +13,7 @@ using EnterprisePatterns.Api.Movies.Domain.Repository;
 using EnterprisePatterns.Api.Movies.Infrastructure.Persistence.NHibernate.Repository;
 using AutoMapper;
 using EnterprisePatterns.Api.BankAccounts.Application.Assembler;
+using EnterprisePatterns.Api.Common.Application;
 
 namespace EnterprisePatterns.Api
 {
@@ -33,7 +34,7 @@ namespace EnterprisePatterns.Api
             var serviceProvider = services.BuildServiceProvider();
             var mapper = serviceProvider.GetService<IMapper>();
             services.AddSingleton(new BankAccountCreateAssembler(mapper));
-            services.AddScoped<UnitOfWorkNHibernate>();
+            services.AddScoped<IUnitOfWork, UnitOfWorkNHibernate>();
             services.AddTransient<IBankAccountRepository, BankAccountNHibernateRepository>();
             services.AddTransient<ICustomerRepository, CustomerNHibernateRepository>();
             services.AddTransient<IMovieRepository, MovieNHibernateRepository>();
