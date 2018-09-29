@@ -70,5 +70,6 @@ namespace EnterprisePatterns.Api.Common.Infrastructure.Persistence.NHibernate
         {
             return _session.Query<T>();
         }
+
     }
 }
