@@ -1,4 +1,4 @@
-﻿using EnterprisePatterns.Api.Migrations.MySQL;
+﻿using EnterprisePatterns.Api.Migrations.SQLServer;
 using FluentMigrator.Runner;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
@@ -28,8 +28,8 @@ namespace EnterprisePatterns.Api
             return new ServiceCollection()
                 .AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
-                    .AddMySql5()
-                    .WithGlobalConnectionString(Environment.GetEnvironmentVariable("MYSQL_STRCON_PATTERNS"))
+                    .AddSqlServer()
+                    .WithGlobalConnectionString(Environment.GetEnvironmentVariable("OnlineTheater_SQL"))
                     .ScanIn(typeof(CustomerTable).Assembly)
                     .For.All()
                 )

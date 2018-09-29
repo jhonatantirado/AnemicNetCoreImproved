@@ -29,7 +29,7 @@ namespace EnterprisePatterns.Api
         {
             services.AddAutoMapper();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddSingleton(new SessionFactory(Environment.GetEnvironmentVariable("MYSQL_STRCON_PATTERNS")));
+            services.AddSingleton(new SessionFactory(Environment.GetEnvironmentVariable("OnlineTheater_SQL")));
             var serviceProvider = services.BuildServiceProvider();
             var mapper = serviceProvider.GetService<IMapper>();
             services.AddSingleton(new BankAccountCreateAssembler(mapper));

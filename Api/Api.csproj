@@ -6,9 +6,7 @@
     <UserSecretsId>2e096208-61ba-4a39-86be-832f73052ec0</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\MySQL\1_CustomerTable.sql"/>
-    <EmbeddedResource Include="Migrations\MySQL\2_BankAccountTable.sql"/>
-    <EmbeddedResource Include="Migrations\MySQL\3_IdsTable.sql"/>
+    <EmbeddedResource Include="Migrations\SQLServer\Database.sql"/>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\Application\Assembler\"/>
