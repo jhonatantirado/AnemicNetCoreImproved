@@ -9,6 +9,8 @@ using EnterprisePatterns.Api.BankAccounts.Domain.Repository;
 using EnterprisePatterns.Api.Accounts.Infrastructure.Persistence.NHibernate.Repository;
 using EnterprisePatterns.Api.Customers.Domain.Repository;
 using EnterprisePatterns.Api.Customers.Infrastructure.Persistence.NHibernate.Repository;
+using EnterprisePatterns.Api.Movies.Domain.Repository;
+using EnterprisePatterns.Api.Movies.Infrastructure.Persistence.NHibernate.Repository;
 using AutoMapper;
 using EnterprisePatterns.Api.BankAccounts.Application.Assembler;
 
@@ -34,6 +36,7 @@ namespace EnterprisePatterns.Api
             services.AddScoped<UnitOfWorkNHibernate>();
             services.AddTransient<IBankAccountRepository, BankAccountNHibernateRepository>();
             services.AddTransient<ICustomerRepository, CustomerNHibernateRepository>();
+            services.AddTransient<IMovieRepository, MovieNHibernateRepository>();
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

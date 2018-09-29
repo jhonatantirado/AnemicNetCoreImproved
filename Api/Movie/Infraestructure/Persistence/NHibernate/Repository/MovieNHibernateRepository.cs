@@ -7,7 +7,7 @@ using EnterprisePatterns.Api.Common.Infrastructure.Persistence.NHibernate;
 
 namespace EnterprisePatterns.Api.Movies.Infrastructure.Persistence.NHibernate.Repository
 {
-    class MovieNHibernateRepository : BaseNHibernateRepository<Movie>, IMovieRepository
+    public class MovieNHibernateRepository : BaseNHibernateRepository<Movie>, IMovieRepository
     {
         public MovieNHibernateRepository(UnitOfWorkNHibernate unitOfWork) : base(unitOfWork)
         {
@@ -16,11 +16,6 @@ namespace EnterprisePatterns.Api.Movies.Infrastructure.Persistence.NHibernate.Re
         public IReadOnlyList<Movie> GetList()
         {
             return _unitOfWork.Query<Movie>().ToList();
-        }
-
-        public Movie GetById(long id)
-        {
-            return  new TwoDaysMovie {};
         }
 
         

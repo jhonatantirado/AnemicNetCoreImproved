@@ -15,13 +15,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace EnterprisePatterns.Api.Controllers
 {
     [Route("api/[controller]")]
-    public class CustomersController : BaseController
+    [ApiController]
+    public class CustomersController : ControllerBase
     {
         private readonly IMovieRepository _movieRepository;
         private readonly ICustomerRepository _customerRepository;
 
-        private CustomersController(IUnitOfWork unitOfWork, IMovieRepository movieRepository, ICustomerRepository customerRepository)
-            : base(unitOfWork)
+        public CustomersController(IMovieRepository movieRepository, ICustomerRepository customerRepository)
         {
             _customerRepository = customerRepository;
             _movieRepository = movieRepository;
@@ -31,7 +31,7 @@ namespace EnterprisePatterns.Api.Controllers
         [Route("{id}")]
         public IActionResult Get(long id)
         {
-            Customer customer = _customerRepository.GetById(id);
+            Customer customer = _customerRepository.Read(id);
             if (customer == null)
                 return NotFound();
             
@@ -85,13 +85,13 @@ namespace EnterprisePatterns.Api.Controllers
 
             Result result = Result.Combine(customerNameOrError, emailOrError);
             if (result.IsFailure)
-                return Error(result.Error);
+                return BadRequest(result.Error);
 
             if (_customerRepository.GetByEmail(emailOrError.Value) != null)
-                return Error("Email is already in use: " + item.Email);
+                return BadRequest("Email is already in use: " + item.Email);
 
             var customer = new Customer(customerNameOrError.Value, emailOrError.Value);
-            _customerRepository.Add(customer);
+            _customerRepository.Create(customer);
 
             return Ok();
         }
@@ -102,11 +102,11 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Result<CustomerName> customerNameOrError = CustomerName.Create(item.Name);
             if (customerNameOrError.IsFailure)
-                return Error(customerNameOrError.Error);
+                return BadRequest(customerNameOrError.Error);
 
-            Customer customer = _customerRepository.GetById(id);
+            Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return BadRequest("Invalid customer id: " + id);
 
             customer.Name = customerNameOrError.Value;
 
@@ -117,16 +117,16 @@ namespace EnterprisePatterns.Api.Controllers
         [Route("{id}/movies")]
         public IActionResult PurchaseMovie(long id, [FromBody] long movieId)
         {
-            Movie movie = _movieRepository.GetById(movieId);
+            Movie movie = _movieRepository.Read(movieId);
             if (movie == null)
-                return Error("Invalid movie id: " + movieId);
+                return BadRequest("Invalid movie id: " + movieId);
 
-            Customer customer = _customerRepository.GetById(id);
+            Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return BadRequest("Invalid customer id: " + id);
 
             if (customer.HasPurchasedMovie(movie))
-                return Error("The movie is already purchased: " + movie.Name);
+                return BadRequest("The movie is already purchased: " + movie.Name);
 
             customer.PurchaseMovie(movie);
 
@@ -137,13 +137,13 @@ namespace EnterprisePatterns.Api.Controllers
         [Route("{id}/promotion")]
         public IActionResult PromoteCustomer(long id)
         {
-            Customer customer = _customerRepository.GetById(id);
+            Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return BadRequest("Invalid customer id: " + id);
 
             Result promotionCheck = customer.CanPromote();
             if (promotionCheck.IsFailure)
-                return Error(promotionCheck.Error);
+                return BadRequest(promotionCheck.Error);
 
             customer.Promote();
 

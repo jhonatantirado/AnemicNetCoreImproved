@@ -8,8 +8,8 @@ namespace EnterprisePatterns.Api.Customers.Domain.Repository
 
         Customer GetByEmail(Email email);
 
-        Customer GetById (long id);
+        Customer Read (long id);
 
-        void Add (Customer customer);
+        void Create (Customer customer);
     }
 }

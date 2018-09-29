@@ -5,6 +5,6 @@ namespace EnterprisePatterns.Api.Movies.Domain.Repository
     public interface IMovieRepository
     {
         IReadOnlyList<EnterprisePatterns.Api.Movies.Domain.Entity.Movie> GetList();
-        Movie GetById(long id);
+        Movie Read(long id);
     }
 }
