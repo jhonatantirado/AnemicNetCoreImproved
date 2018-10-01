@@ -35,9 +35,22 @@ namespace EnterprisePatterns.Api
             var mapper = serviceProvider.GetService<IMapper>();
             services.AddSingleton(new BankAccountCreateAssembler(mapper));
             services.AddScoped<IUnitOfWork, UnitOfWorkNHibernate>();
-            services.AddTransient<IBankAccountRepository, BankAccountNHibernateRepository>();
-            services.AddTransient<ICustomerRepository, CustomerNHibernateRepository>();
-            services.AddTransient<IMovieRepository, MovieNHibernateRepository>();
+           
+            services.AddTransient<IBankAccountRepository, BankAccountNHibernateRepository>((ctx) =>
+            {
+                IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
+                return new BankAccountNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
+            });
+            services.AddTransient<ICustomerRepository, CustomerNHibernateRepository>((ctx) =>
+            {
+                IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
+                return new CustomerNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
+            });
+            services.AddTransient<IMovieRepository, MovieNHibernateRepository>((ctx) =>
+            {
+                IUnitOfWork unitOfWork = ctx.GetService<IUnitOfWork>();
+                return new MovieNHibernateRepository((UnitOfWorkNHibernate)unitOfWork);
+            });
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)

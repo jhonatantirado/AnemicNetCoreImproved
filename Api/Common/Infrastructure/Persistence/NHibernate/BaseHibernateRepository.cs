@@ -1,4 +1,5 @@
-﻿namespace EnterprisePatterns.Api.Common.Infrastructure.Persistence.NHibernate
+﻿using System;
+namespace EnterprisePatterns.Api.Common.Infrastructure.Persistence.NHibernate
 {
     public class BaseNHibernateRepository<T>
     {
@@ -16,9 +17,18 @@
 
         public T Read(long id)
         {		    
-		    bool status = _unitOfWork.BeginTransaction();
-            T entity = _unitOfWork.GetSession().Get<T>(id);
-            _unitOfWork.Commit(status);
+            T entity;
+            bool uowStatus = false;
+            try
+            {
+                uowStatus = _unitOfWork.BeginTransaction();
+                entity = _unitOfWork.GetSession().Get<T>(id);
+                _unitOfWork.Commit(uowStatus);
+            } catch(Exception ex)
+            {
+                _unitOfWork.Rollback(uowStatus);
+                throw ex;
+            }
             return entity;
 	    }
 
@@ -29,16 +39,34 @@
 
         public void Delete(T entity)
         {
-		    bool status = _unitOfWork.BeginTransaction();
-            _unitOfWork.GetSession().Delete(entity);
-            _unitOfWork.Commit(status);
+            bool uowStatus = false;
+            try
+            {
+                uowStatus = _unitOfWork.BeginTransaction();
+                _unitOfWork.GetSession().Delete(entity);
+                _unitOfWork.Commit(uowStatus);
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.Rollback(uowStatus);
+                throw ex;
+            }
         }
 
         private void SaveOrUpdate(T entity)
         {            
-            bool status = _unitOfWork.BeginTransaction();
-            _unitOfWork.GetSession().SaveOrUpdate(entity);
-            _unitOfWork.Commit(status);
+            bool uowStatus = false;
+            try
+            {
+                uowStatus = _unitOfWork.BeginTransaction();
+                _unitOfWork.GetSession().SaveOrUpdate(entity);
+                _unitOfWork.Commit(uowStatus);
+            }
+            catch (Exception ex)
+            {
+                _unitOfWork.Rollback(uowStatus);
+                throw ex;
+            }
         }
     }
 }

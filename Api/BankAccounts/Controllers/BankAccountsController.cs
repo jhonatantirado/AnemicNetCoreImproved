@@ -5,6 +5,8 @@ using EnterprisePatterns.Api.BankAccounts.Application.Assembler;
 using EnterprisePatterns.Api.BankAccounts.Domain.Entity;
 using EnterprisePatterns.Api.BankAccounts.Domain.Repository;
 using EnterprisePatterns.Api.Common.Application.Dto;
+using EnterprisePatterns.Api.Common.Application;
+using System;
 
 namespace EnterprisePatterns.Api.Controllers
 {
@@ -12,11 +14,13 @@ namespace EnterprisePatterns.Api.Controllers
     [ApiController]
     public class BankAccountsController : ControllerBase
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly BankAccountCreateAssembler _bankAccountCreateAssembler;
 
-        public BankAccountsController(IBankAccountRepository bankAccountRepository, BankAccountCreateAssembler bankAccountCreateAssembler)
+        public BankAccountsController( IUnitOfWork unitOfWork, IBankAccountRepository bankAccountRepository, BankAccountCreateAssembler bankAccountCreateAssembler)
         {
+            _unitOfWork = unitOfWork;
             _bankAccountRepository = bankAccountRepository;
             _bankAccountCreateAssembler = bankAccountCreateAssembler;
         }
@@ -24,10 +28,22 @@ namespace EnterprisePatterns.Api.Controllers
         [HttpPost]
         public IActionResult Create(long customerId, [FromBody] BankAccountCreateDto bankAccountCreateDto)
         {
-            bankAccountCreateDto.CustomerId = customerId;
-            BankAccount bankAccount = _bankAccountCreateAssembler.toEntity(bankAccountCreateDto);
-            _bankAccountRepository.Create(bankAccount);
-            return StatusCode(StatusCodes.Status201Created, new ApiStringResponseDto("BankAccount Created!"));
+            bool uowStatus = false;
+            try{
+                uowStatus = _unitOfWork.BeginTransaction();
+                bankAccountCreateDto.CustomerId = customerId;
+                BankAccount bankAccount = _bankAccountCreateAssembler.toEntity(bankAccountCreateDto);
+                _bankAccountRepository.Create(bankAccount);                
+                _unitOfWork.Commit(uowStatus);
+                return StatusCode(StatusCodes.Status201Created, new ApiStringResponseDto("BankAccount Created!"));
+
+            }
+            catch (Exception ex) {
+                _unitOfWork.Rollback(uowStatus);
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiStringResponseDto("Internal Server Error"));
+
+            }
         }
     }
 }

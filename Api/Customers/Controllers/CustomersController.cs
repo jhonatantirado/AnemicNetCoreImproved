@@ -5,24 +5,29 @@ using EnterprisePatterns.Api.Common.Controllers;
 using EnterprisePatterns.Api.Movies.Domain.Repository;
 using EnterprisePatterns.Api.Customers.Domain.Repository;
 using EnterprisePatterns.Api.Common.Application;
+using EnterprisePatterns.Api.Common.Application.Dto;
 using EnterprisePatterns.Api.Common.Domain.ValueObject;
 using EnterprisePatterns.Api.Customers.Dto;
 using EnterprisePatterns.Api.Movies.Dto;
 using EnterprisePatterns.Api.Customers;
 using EnterprisePatterns.Api.Movies.Domain.Entity;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace EnterprisePatterns.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController : BaseController
+    public class CustomersController : ControllerBase
     {
+        private readonly IUnitOfWork _unitOfWork;        
         private readonly IMovieRepository _movieRepository;
         private readonly ICustomerRepository _customerRepository;
 
-        public CustomersController(IUnitOfWork unitOfWork, IMovieRepository movieRepository, ICustomerRepository customerRepository): base(unitOfWork)
+        public CustomersController(IUnitOfWork unitOfWork, IMovieRepository movieRepository, ICustomerRepository customerRepository)
         {
+             _unitOfWork = unitOfWork;
             _customerRepository = customerRepository;
             _movieRepository = movieRepository;
         }
@@ -62,19 +67,26 @@ namespace EnterprisePatterns.Api.Controllers
         [HttpGet]
         public IActionResult GetList()
         {
-            IReadOnlyList<Customer> customers = _customerRepository.GetList();
-
-            List<CustomerInListDto> dtos = customers.Select(x => new CustomerInListDto
-            {
-                Id = x.Id,
-                Name = x.Name.Value,
-                Email = x.Email.Value,
-                MoneySpent = x.MoneySpent,
-                Status = x.Status.Type.ToString(),
-                StatusExpirationDate = x.Status.ExpirationDate
-            }).ToList();
-            
-            return Ok(dtos);
+            bool uowStatus = false;
+            try{
+                uowStatus = _unitOfWork.BeginTransaction();
+                IReadOnlyList<Customer> customers = _customerRepository.GetList();
+                _unitOfWork.Commit(uowStatus);
+                List<CustomerInListDto> dtos = customers.Select(x => new CustomerInListDto
+                {
+                    Id = x.Id,
+                    Name = x.Name.Value,
+                    Email = x.Email.Value,
+                    MoneySpent = x.MoneySpent,
+                    Status = x.Status.Type.ToString(),
+                    StatusExpirationDate = x.Status.ExpirationDate
+                }).ToList();
+                return Ok(dtos);
+            } catch (Exception ex){
+                _unitOfWork.Rollback(uowStatus);
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(StatusCodes.Status500InternalServerError, new ApiStringResponseDto("Internal Server Error"));
+            }
         }
 
         [HttpPost]
@@ -85,10 +97,10 @@ namespace EnterprisePatterns.Api.Controllers
 
             Result result = Result.Combine(customerNameOrError, emailOrError);
             if (result.IsFailure)
-                return Error(result.Error);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto(result.Error));
 
             if (_customerRepository.GetByEmail(emailOrError.Value) != null)
-                return Error("Email is already in use: " + item.Email);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("Email is already in use: " + item.Email));
 
             var customer = new Customer(customerNameOrError.Value, emailOrError.Value);
             _customerRepository.Create(customer);
@@ -102,11 +114,11 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Result<CustomerName> customerNameOrError = CustomerName.Create(item.Name);
             if (customerNameOrError.IsFailure)
-                return Error(customerNameOrError.Error);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto(customerNameOrError.Error));
 
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("Invalid customer id: " + id));
 
             customer.Name = customerNameOrError.Value;
 
@@ -119,14 +131,14 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Movie movie = _movieRepository.Read(movieId);
             if (movie == null)
-                return Error("Invalid movie id: " + movieId);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("Invalid movie id: " + movieId));
 
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("Invalid customer id: " + id));
 
             if (customer.HasPurchasedMovie(movie))
-                return Error("The movie is already purchased: " + movie.Name);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("The movie is already purchased: " + movie.Name));
 
             customer.PurchaseMovie(movie);
 
@@ -139,11 +151,11 @@ namespace EnterprisePatterns.Api.Controllers
         {
             Customer customer = _customerRepository.Read(id);
             if (customer == null)
-                return Error("Invalid customer id: " + id);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto("Invalid customer id: " + id));
 
             Result promotionCheck = customer.CanPromote();
             if (promotionCheck.IsFailure)
-                return Error(promotionCheck.Error);
+                return StatusCode(StatusCodes.Status400BadRequest, new ApiStringResponseDto(promotionCheck.Error));
 
             customer.Promote();
 
